@@ -657,27 +657,38 @@ running 'man git-rebase' at the command line) for details."
 
 (defun git-rebase-mode-font-lock-keywords ()
   "Font lock keywords for Git-Rebase mode."
-  (let ((action-re "\
-\\([efprs]\\|pick\\|reword\\|edit\\|squash\\|fixup\\) \\([^ \n]+\\) \\(.*\\)"))
-    `((,(concat "^" action-re)
-       (1 'font-lock-keyword-face)
-       (2 'git-rebase-hash)
-       (3 'git-rebase-description))
-      ("^\\(exec\\) \\(.*\\)"
-       (1 'font-lock-keyword-face)
-       (2 'git-rebase-description))
-      ("^\\(noop\\)"
-       (1 'font-lock-keyword-face))
-      (git-rebase-match-comment-line 0 'font-lock-comment-face)
-      (,(concat git-rebase-comment-re " *" action-re)
-       0 'git-rebase-killed-action t)
-      ("\\[[^[]*\\]"
-       0 'magit-keyword t)
-      (,(format "^%s Rebase \\([^ ]*\\) onto \\([^ ]*\\)" comment-start)
-       (1 'git-rebase-comment-hash t)
-       (2 'git-rebase-comment-hash t))
-      (,(format "^%s \\(Commands:\\)" comment-start)
-       (1 'git-rebase-comment-heading t)))))
+  `((,(concat "^" (cdr (assq 'commit git-rebase-line-regexps)))
+     (1 'font-lock-keyword-face)
+     (3 'git-rebase-hash)
+     (4 'git-rebase-description))
+    (,(concat "^" (cdr (assq 'exec git-rebase-line-regexps)))
+     (1 'font-lock-keyword-face)
+     (3 'git-rebase-description))
+    (,(concat "^" (cdr (assq 'bare git-rebase-line-regexps)))
+     (1 'font-lock-keyword-face))
+    (,(concat "^" (cdr (assq 'label git-rebase-line-regexps)))
+     (1 'font-lock-keyword-face)
+     (3 'git-rebase-label)
+     (4 'font-lock-comment-face))
+    ;; Use different merge regexp to highlight hash.
+    ("^\\(m\\(?:erge\\)?\\) -[Cc] \\([^ \n]+\\) \\([^ \n]+\\)\\( #.*\\)?"
+     (1 'font-lock-keyword-face)
+     (2 'git-rebase-hash)
+     (3 'git-rebase-label)
+     (4 'font-lock-comment-face))
+    (,(concat git-rebase-comment-re " *"
+              (cdr (assq 'commit git-rebase-line-regexps)))
+     0 'git-rebase-killed-action t)
+    (git-rebase-match-comment-line 0 'font-lock-comment-face)
+    ("\\[[^[]*\\]"
+     0 'magit-keyword t)
+    (,(format "^%s Rebase \\([^ ]*\\) onto \\([^ ]*\\)" comment-start)
+     (1 'git-rebase-comment-hash t)
+     (2 'git-rebase-comment-hash t))
+    (,(format "^%s \\(Commands:\\)" comment-start)
+     (1 'git-rebase-comment-heading t))
+    (,(format "^%s Branch \\(.*\\)" comment-start)
+     (1 'git-rebase-label t))))
 
 (defun git-rebase-mode-show-keybindings ()
   "Modify the \"Commands:\" section of the comment Git generates
