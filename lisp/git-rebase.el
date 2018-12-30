@@ -318,15 +318,14 @@
 
 (defun git-rebase-set-action (action)
   (goto-char (line-beginning-position))
-  (pcase (git-rebase-current-line)
-    ((eieio (action-type `commit) target trailer)
-     (let ((inhibit-read-only t))
-       (magit-delete-line)
-       (insert (concat action " " target " " trailer "\n"))
-       (unless git-rebase-auto-advance
-         (forward-line -1))))
-    (_
-     (ding))))
+  (with-slots (action-type target trailer) (git-rebase-current-line)
+    (if (eq action-type 'commit)
+        (let ((inhibit-read-only t))
+          (magit-delete-line)
+          (insert (concat action " " target " " trailer "\n"))
+          (unless git-rebase-auto-advance
+            (forward-line -1)))
+      (ding))))
 
 (defun git-rebase-line-p (&optional pos)
   (save-excursion
@@ -565,14 +564,14 @@ Like `undo' but works in read-only buffers."
 (defun git-rebase--show-commit (&optional scroll)
   (let ((disable-magit-save-buffers t))
     (save-excursion
-      (pcase (git-rebase-current-line)
-        ((eieio (action-type `commit) target)
-         (pcase scroll
-           (`up   (magit-diff-show-or-scroll-up))
-           (`down (magit-diff-show-or-scroll-down))
-           (_     (apply #'magit-show-commit target (magit-diff-arguments)))))
-        (_
-         (ding))))))
+      (with-slots (action-type target) (git-rebase-current-line)
+        (if (eq action-type 'commit)
+            (pcase scroll
+              (`up   (magit-diff-show-or-scroll-up))
+              (`down (magit-diff-show-or-scroll-down))
+              (_     (apply #'magit-show-commit target (magit-diff-arguments))))
+          (_
+           (ding)))))))
 
 (defun git-rebase-show-commit ()
   "Show the commit on the current line if any."
