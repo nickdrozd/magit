@@ -162,6 +162,7 @@
     (define-key map (kbd "e") 'git-rebase-edit)
     (define-key map (kbd "l") 'git-rebase-label)
     (define-key map (kbd "MM") 'git-rebase-merge)
+    (define-key map (kbd "Mt") 'git-rebase-merge-toggle-editmsg)
     (define-key map (kbd "t") 'git-rebase-reset)
     (define-key map (kbd "m") 'git-rebase-edit)
     (define-key map (kbd "f") 'git-rebase-fixup)
@@ -503,6 +504,22 @@ if any."
 ;; -c/-C?  could maybe add another argument to
 ;; git-rebase-set-other-action to remove it if replacing initial
 
+(defun git-rebase-merge-toggle-editmsg ()
+  (interactive)
+  (if-let* ((ln (git-rebase-current-line))
+            (opts (and (eq (oref ln action-type) 'merge)
+                       (oref ln action-options))))
+      (let ((inhibit-read-only t))
+        (magit-delete-line)
+        (insert
+         (format "merge %s %s %s\n"
+                 (replace-regexp-in-string "-[cC]"
+                                           (lambda (c)
+                                             (if (equal c "-c") "-C" "-c"))
+                                           opts t t)
+                 (oref ln target)
+                 (oref ln trailer))))
+    (ding)))
 
 (defun git-rebase-set-bare-action (action arg)
   (goto-char (line-beginning-position))
