@@ -432,6 +432,20 @@ remove the command on the current line, if any."
            (forward-line)
          (goto-char (line-beginning-position)))))))
 
+(defun git-rebase-set-bare-action (action arg)
+  (goto-char (line-beginning-position))
+  (let* ((ln (git-rebase-current-line))
+         (same-action-p (and ln
+                             (equal (oref ln action) action)))
+         (inhibit-read-only t))
+    (when (or arg
+              (not ln)
+              (not same-action-p)
+              (and same-action-p (oref ln comment-p)))
+      (when (and (not arg) same-action-p)
+        (magit-delete-line))
+      (insert action ?\n))))
+
 (defun git-rebase-noop (&optional arg)
   "Add noop action at point.
 
@@ -445,17 +459,7 @@ A noop action can be used to make git perform a rebase even if
 no commits are selected.  Without the noop action present, git
 would see an empty file and therefore do nothing."
   (interactive "P")
-  (goto-char (line-beginning-position))
-  ;; The extra space at the end is only there to make the action
-  ;; consistent with the others (action argument). This keeps
-  ;; the regexp `git-rebase-line' from getting complicated.
-  (let ((noop-string "noop \n"))
-    (when (or arg (not (looking-at noop-string)))
-      (let ((inhibit-read-only t))
-        (if (and (not arg)
-                 (looking-at (concat comment-start noop-string)))
-            (delete-char 1)
-          (insert noop-string))))))
+  (git-rebase-set-bare-action "noop" arg))
 
 (defun git-rebase-undo (&optional arg)
   "Undo some previous changes.
