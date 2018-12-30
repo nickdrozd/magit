@@ -253,12 +253,12 @@
   "Alist mapping single-key for an action to the full name.")
 
 (defclass git-rebase-line ()
-  ((action-type :initarg :action-type)
-   (action  :initarg :action)
+  ((action-type    :initarg :action-type)
+   (action         :initarg :action)
    (action-options :initarg :action-options :initform nil)
-   (target :initarg :target)
-   (trailer :initarg :trailer :initform nil)
-   (comment-p :initarg :comment-p :initform nil)))
+   (target         :initarg :target)
+   (trailer        :initarg :trailer        :initform nil)
+   (comment-p      :initarg :comment-p      :initform nil)))
 
 (defvar git-rebase-line-regexps
   `((commit . ,(concat
