@@ -161,6 +161,7 @@
     (define-key map (kbd "b") 'git-rebase-break)
     (define-key map (kbd "e") 'git-rebase-edit)
     (define-key map (kbd "l") 'git-rebase-label)
+    (define-key map (kbd "t") 'git-rebase-reset)
     (define-key map (kbd "m") 'git-rebase-edit)
     (define-key map (kbd "f") 'git-rebase-fixup)
     (define-key map (kbd "q") 'undefined)
@@ -257,6 +258,7 @@
     (?p . "pick")
     (?r . "reword")
     (?s . "squash")
+    (?t . "reset")
     (?x . "exec"))
   "Alist mapping single-key for an action to the full name.")
 
@@ -281,7 +283,8 @@
     (bare . ,(concat (regexp-opt '("b" "break" "noop") "\\(?1:")
                      " *$"))
     (label . ,(concat
-               (regexp-opt '("l" "label")
+               (regexp-opt '("l" "label"
+                             "t" "reset")
                            "\\(?1:")
                " \\(?3:[^ \n]+\\) ?\\(?4:.*\\)"))))
 
@@ -461,6 +464,23 @@ if any."
    (lambda (initial)
      (read-from-minibuffer
       "Label: " initial magit-minibuffer-local-ns-map))
+   arg))
+
+(defun git-rebase-buffer-labels ()
+  (let (labels)
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "^\\(?:l\\|label\\) \\([^ \n]+\\)" nil t)
+        (push (match-string-no-properties 1) labels)))
+    (nreverse labels)))
+
+(defun git-rebase-reset (arg)
+  (interactive "P")
+  (git-rebase-set-noncommit-action
+   "reset"
+   (lambda (_)
+     (or (magit-completing-read "Label" (git-rebase-buffer-labels))
+         ""))
    arg))
 
 
