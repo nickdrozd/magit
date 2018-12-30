@@ -532,7 +532,7 @@ running 'man git-rebase' at the command line) for details."
   :group 'git-rebase
   (setq comment-start (or (magit-get "core.commentChar") "#"))
   (setq git-rebase-comment-re (concat "^" (regexp-quote comment-start)))
-  (setq font-lock-defaults (list (git-rebase-mode-font-lock-keywords) t t))
+  (setq font-lock-defaults (list (git-rebase-mode-font-lock-keywords) t nil))
   (unless git-rebase-show-instructions
     (let ((inhibit-read-only t))
       (flush-lines git-rebase-comment-re)))
