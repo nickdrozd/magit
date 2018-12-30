@@ -282,14 +282,15 @@
                                  (and (looking-at (concat re-start (cdr arg)))
                                       (car arg))))
                              git-rebase-line-regexps)))
-      (git-rebase-line :action-type type
-                       :action (--when-let (match-string-no-properties 1)
-                                 (or (cdr (assoc it git-rebase-short-options))
-                                     it))
-                       :action-options (match-string-no-properties 2)
-                       :target (match-string-no-properties 3)
-                       :trailer (match-string-no-properties 4)
-                       :comment-p (and (match-string 5) t)))))
+      (git-rebase-line
+       :action-type    type
+       :action         (--when-let (match-string-no-properties 1)
+                         (or (cdr (assoc it git-rebase-short-options))
+                             it))
+       :action-options (match-string-no-properties 2)
+       :target         (match-string-no-properties 3)
+       :trailer        (match-string-no-properties 4)
+       :comment-p      (and (match-string 5) t)))))
 
 (defun git-rebase-set-action (action)
   (goto-char (line-beginning-position))
