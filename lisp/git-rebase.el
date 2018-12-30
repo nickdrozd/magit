@@ -161,6 +161,7 @@
     (define-key map (kbd "b") 'git-rebase-break)
     (define-key map (kbd "e") 'git-rebase-edit)
     (define-key map (kbd "l") 'git-rebase-label)
+    (define-key map (kbd "MM") 'git-rebase-merge)
     (define-key map (kbd "t") 'git-rebase-reset)
     (define-key map (kbd "m") 'git-rebase-edit)
     (define-key map (kbd "f") 'git-rebase-fixup)
@@ -255,6 +256,7 @@
     (?e . "edit")
     (?f . "fixup")
     (?l . "label")
+    (?m . "merge")
     (?p . "pick")
     (?r . "reword")
     (?s . "squash")
@@ -286,7 +288,12 @@
                (regexp-opt '("l" "label"
                              "t" "reset")
                            "\\(?1:")
-               " \\(?3:[^ \n]+\\) ?\\(?4:.*\\)"))))
+               " \\(?3:[^ \n]+\\) ?\\(?4:.*\\)"))
+    (merge . ,(concat
+               "\\(?1:m\\|merge\\) "
+               "\\(?:\\(?2:-[cC] [^ \n]+\\) \\)?"
+               "\\(?3:[^ \n]+\\)"
+               " ?\\(?4:.*\\)"))))
 
 (defun git-rebase-current-line ()
   (save-excursion
@@ -482,6 +489,19 @@ if any."
      (or (magit-completing-read "Label" (git-rebase-buffer-labels))
          ""))
    arg))
+
+(defun git-rebase-merge (arg)
+  (interactive "P")
+  (git-rebase-set-noncommit-action
+   "merge"
+   (lambda (_)
+     (or (magit-completing-read "Merge" (git-rebase-buffer-labels))
+         ""))
+   arg))
+
+;; TODO: think about more. do would you ever want to keep the previous
+;; -c/-C?  could maybe add another argument to
+;; git-rebase-set-other-action to remove it if replacing initial
 
 
 (defun git-rebase-set-bare-action (action arg)
