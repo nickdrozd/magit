@@ -154,6 +154,7 @@
            (define-key map (kbd   "c") 'git-rebase-pick)
            (define-key map (kbd   "k") 'git-rebase-kill-line)
            (define-key map (kbd "C-k") 'git-rebase-kill-line)))
+    (define-key map (kbd "b") 'git-rebase-break)
     (define-key map (kbd "e") 'git-rebase-edit)
     (define-key map (kbd "m") 'git-rebase-edit)
     (define-key map (kbd "f") 'git-rebase-fixup)
@@ -244,7 +245,8 @@
 (defvar-local git-rebase-comment-re nil)
 
 (defvar git-rebase-short-options
-  '((?e . "edit")
+  '((?b . "break")
+    (?e . "edit")
     (?f . "fixup")
     (?p . "pick")
     (?r . "reword")
@@ -270,7 +272,8 @@
                             "\\(?1:")
                 " \\(?3:[^ \n]+\\) \\(?4:.*\\)"))
     (exec . "\\(?1:x\\|exec\\) \\(?3:.*\\)")
-    (bare . "\\(?1:noop\\) *$")))
+    (bare . ,(concat (regexp-opt '("b" "break" "noop") "\\(?1:")
+                     " *$"))))
 
 (defun git-rebase-current-line ()
   (save-excursion
@@ -460,6 +463,11 @@ no commits are selected.  Without the noop action present, git
 would see an empty file and therefore do nothing."
   (interactive "P")
   (git-rebase-set-bare-action "noop" arg))
+
+(defun git-rebase-break (&optional arg)
+  "TODO"
+  (interactive "P")
+  (git-rebase-set-bare-action "break" arg))
 
 (defun git-rebase-undo (&optional arg)
   "Undo some previous changes.
