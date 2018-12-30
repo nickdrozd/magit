@@ -1,0 +1,42 @@
+
+* outstanding issues
+
+** git-rebase-killed-action face says for exec
+
+but only for action.  and maybe that makes sense given comment heading
+below.
+
+** TODO way to uncomment lines like exec and reset?
+
+seems like can just pick them, but end up wrong
+
+actually doesn't seem like you can pick them, only the types i've
+introduced
+
+* rebase
+
+** TODO adjust comment help
+
+make sure all commands are present, reduce merge to oneline
+
+** TODO command for adding choosing msg commit?
+
+** TODO decide on key bindings
+
+** TODO face for comment bits
+
+** TODO release notes
+
+** TODO update docs
+
+commentary.  anything in manual?
+
+** TODO variables for other repeated regexps?
+
+* other
+
+** WIP add "break"
+
+in git 2.20.  mention git version in docstring?
+
+** TODO use with-slots ?
