@@ -160,6 +160,7 @@
            (define-key map (kbd "C-k") 'git-rebase-kill-line)))
     (define-key map (kbd "b") 'git-rebase-break)
     (define-key map (kbd "e") 'git-rebase-edit)
+    (define-key map (kbd "l") 'git-rebase-label)
     (define-key map (kbd "m") 'git-rebase-edit)
     (define-key map (kbd "f") 'git-rebase-fixup)
     (define-key map (kbd "q") 'undefined)
@@ -252,6 +253,7 @@
   '((?b . "break")
     (?e . "edit")
     (?f . "fixup")
+    (?l . "label")
     (?p . "pick")
     (?r . "reword")
     (?s . "squash")
@@ -277,7 +279,11 @@
                 " \\(?3:[^ \n]+\\) \\(?4:.*\\)"))
     (exec . "\\(?1:x\\|exec\\) \\(?3:.*\\)")
     (bare . ,(concat (regexp-opt '("b" "break" "noop") "\\(?1:")
-                     " *$"))))
+                     " *$"))
+    (label . ,(concat
+               (regexp-opt '("l" "label")
+                           "\\(?1:")
+               " \\(?3:[^ \n]+\\) ?\\(?4:.*\\)"))))
 
 (defun git-rebase-current-line ()
   (save-excursion
@@ -442,6 +448,19 @@ remove the command on the current line, if any."
   (git-rebase-set-noncommit-action
    "exec"
    (lambda (initial) (read-shell-command "Execute: " initial))
+   arg))
+
+(defun git-rebase-label (arg)
+  "Add a label after the proceeding commit.
+If there already is a label on the current line, then edit that
+instead.  With empty input remove the label on the current line,
+if any."
+  (interactive "P")
+  (git-rebase-set-noncommit-action
+   "label"
+   (lambda (initial)
+     (read-from-minibuffer
+      "Label: " initial magit-minibuffer-local-ns-map))
    arg))
 
 
