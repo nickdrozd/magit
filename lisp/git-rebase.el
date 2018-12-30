@@ -113,6 +113,10 @@
   "Face for commit hashes."
   :group 'git-rebase-faces)
 
+(defface git-rebase-label '((t (:inherit magit-refname)))
+  "Face for labels."
+  :group 'git-rebase-faces)
+
 (defface git-rebase-description nil
   "Face for commit descriptions."
   :group 'git-rebase-faces)
