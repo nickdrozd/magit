@@ -266,12 +266,29 @@
   "Alist mapping single-key for an action to the full name.")
 
 (defclass git-rebase-line ()
-  ((action-type    :initarg :action-type)
-   (action         :initarg :action)
-   (action-options :initarg :action-options :initform nil)
-   (target         :initarg :target)
-   (trailer        :initarg :trailer        :initform nil)
-   (comment-p      :initarg :comment-p      :initform nil)))
+  ((action-type :initarg :action-type
+                :type symbol
+                :documentation "Type of action (e.g., `commit').")
+   (action :initarg :action
+           :type string
+           :documentation "Action name (e.g., \"pick\".")
+   (action-options :initarg :action-options
+                   :initform ""
+                   :type string
+                   :documentation "Text between action and target.
+This is currently only relevant for merge.")
+   (target :initarg :target
+           :type string
+           :documentation "Target of action (e.g., a commit hash)")
+   (trailer :initarg :trailer
+            :initform ""
+            :type string
+            :documentation "Auxiliary text that follows action.")
+   (comment-p :initarg :comment-p
+              :initform nil
+              :type boolean
+              :documentation "Whether this line is commented."))
+  :comment "Class representing a rebase action line.")
 
 (defvar git-rebase-line-regexps
   `((commit . ,(concat
@@ -311,7 +328,7 @@
        :action         (--when-let (match-string-no-properties 1)
                          (or (cdr (assoc it git-rebase-short-options))
                              it))
-       :action-options (match-string-no-properties 2)
+       :action-options (or (match-string-no-properties 2) "")
        :target         (match-string-no-properties 3)
        :trailer        (match-string-no-properties 4)
        :comment-p      (and (match-string 5) t)))))
