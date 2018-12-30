@@ -409,6 +409,28 @@ current line."
         (insert "pick " it ?\n))
     (user-error "Unknown revision")))
 
+(defun git-rebase-set-noncommit-action (action value-fn arg)
+  (let* ((inhibit-read-only t)
+         (ln (git-rebase-current-line))
+         (initial (and (not arg)
+                       ln
+                       (equal (oref ln action) action)
+                       (oref ln target)))
+         (value (funcall value-fn initial)))
+    (pcase (list value initial)
+      ((or `("" nil)
+           (guard (equal value initial)))
+       (ding))
+      (`(""  ,_)
+       (magit-delete-line))
+      (_
+       (if initial
+           (magit-delete-line)
+         (forward-line))
+       (insert (concat action " " value "\n"))
+       (unless git-rebase-auto-advance
+         (forward-line -1))))))
+
 (defun git-rebase-exec (arg)
   "Insert a shell command to be run after the proceeding commit.
 
@@ -417,27 +439,11 @@ that instead.  With a prefix argument insert a new command even
 when there already is one on the current line.  With empty input
 remove the command on the current line, if any."
   (interactive "P")
-  (let ((inhibit-read-only t) initial command)
-    (unless arg
-      (goto-char (line-beginning-position))
-      (when (looking-at (concat git-rebase-comment-re "?"
-                                "\\(e\\|exec\\) \\(.*\\)"))
-        (setq initial (match-string-no-properties 2))))
-    (setq command (read-shell-command "Execute: " initial))
-    (pcase (list command initial)
-      (`("" nil) (ding))
-      (`(""  ,_)
-       (delete-region (match-beginning 0) (1+ (match-end 0))))
-      (`(,_ nil)
-       (forward-line)
-       (insert (concat "exec " command "\n"))
-       (unless git-rebase-auto-advance
-         (forward-line -1)))
-      (_
-       (replace-match (concat "exec " command) t t)
-       (if git-rebase-auto-advance
-           (forward-line)
-         (goto-char (line-beginning-position)))))))
+  (git-rebase-set-noncommit-action
+   "exec"
+   (lambda (initial) (read-shell-command "Execute: " initial))
+   arg))
+
 
 (defun git-rebase-set-bare-action (action arg)
   (goto-char (line-beginning-position))
