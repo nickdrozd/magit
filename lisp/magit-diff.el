@@ -1564,14 +1564,13 @@ commit or stash at point, then prompt for a commit."
       (setq buf (magit-mode-get-buffer 'magit-revision-mode)))
      ((derived-mode-p 'git-rebase-mode)
       (save-excursion
-        (goto-char (line-beginning-position))
-        (--if-let (and git-rebase-line
-                       (looking-at git-rebase-line)
-                       (match-string 2))
-            (progn (setq rev it)
-                   (setq cmd 'magit-show-commit)
-                   (setq buf (magit-mode-get-buffer 'magit-revision-mode)))
-          (user-error "No commit on this line"))))
+        (pcase (git-rebase-current-line)
+          ((eieio (action-type 'commit) target)
+           (setq rev target)
+           (setq cmd 'magit-show-commit)
+           (setq buf (magit-mode-get-buffer 'magit-revision-mode)))
+          (_
+           (user-error "No commit on this line")))))
      (t
       (magit-section-case
         (branch

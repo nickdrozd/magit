@@ -241,24 +241,72 @@
   (interactive)
   (git-rebase-set-action "fixup"))
 
-(defvar-local git-rebase-line nil)
 (defvar-local git-rebase-comment-re nil)
+
+(defvar git-rebase-short-options
+  '((?e . "edit")
+    (?f . "fixup")
+    (?p . "pick")
+    (?r . "reword")
+    (?s . "squash")
+    (?x . "exec"))
+  "Alist mapping single-key for an action to the full name.")
+
+(defclass git-rebase-line ()
+  ((action-type :initarg :action-type)
+   (action  :initarg :action)
+   (action-options :initarg :action-options :initform nil)
+   (target :initarg :target)
+   (trailer :initarg :trailer :initform nil)
+   (comment-p :initarg :comment-p :initform nil)))
+
+(defvar git-rebase-line-regexps
+  `((commit . ,(concat
+                (regexp-opt '("e" "edit"
+                              "f" "fixup"
+                              "p" "pick"
+                              "r" "reword"
+                              "s" "squash")
+                            "\\(?1:")
+                " \\(?3:[^ \n]+\\) \\(?4:.*\\)"))
+    (exec . "\\(?1:x\\|exec\\) \\(?3:.*\\)")
+    (bare . "\\(?1:noop\\) *$")))
+
+(defun git-rebase-current-line ()
+  (save-excursion
+    (goto-char (line-beginning-position))
+    (when-let* ((re-start (concat "^\\(?5:" (regexp-quote comment-start)
+                                  "\\)? *"))
+                (type (-some (lambda (arg)
+                               (let ((case-fold-search nil))
+                                 (and (looking-at (concat re-start (cdr arg)))
+                                      (car arg))))
+                             git-rebase-line-regexps)))
+      (git-rebase-line :action-type type
+                       :action (--when-let (match-string-no-properties 1)
+                                 (or (cdr (assoc it git-rebase-short-options))
+                                     it))
+                       :action-options (match-string-no-properties 2)
+                       :target (match-string-no-properties 3)
+                       :trailer (match-string-no-properties 4)
+                       :comment-p (and (match-string 5) t)))))
 
 (defun git-rebase-set-action (action)
   (goto-char (line-beginning-position))
-  (if (and (looking-at git-rebase-line)
-           (not (string-match-p "\\(e\\|exec\\|noop\\)$" (match-string 1))))
-      (let ((inhibit-read-only t))
-        (replace-match action t t nil 1)
-        (when git-rebase-auto-advance
-          (forward-line)))
-    (ding)))
+  (pcase (git-rebase-current-line)
+    ((eieio (action-type `commit) target trailer)
+     (let ((inhibit-read-only t))
+       (magit-delete-line)
+       (insert (concat action " " target " " trailer "\n"))
+       (unless git-rebase-auto-advance
+         (forward-line -1))))
+    (_
+     (ding))))
 
 (defun git-rebase-line-p (&optional pos)
   (save-excursion
     (when pos (goto-char pos))
-    (goto-char (line-beginning-position))
-    (looking-at-p git-rebase-line)))
+    (and (git-rebase-current-line) t)))
 
 (defun git-rebase-region-bounds ()
   (when (use-region-p)
@@ -285,10 +333,13 @@ current line."
     (save-restriction
       (narrow-to-region
        (point-min)
-       (1+ (save-excursion
-             (goto-char (point-min))
-             (while (re-search-forward git-rebase-line nil t))
-             (point))))
+       (save-excursion
+         (goto-char (point-min))
+         (or (and (re-search-forward (concat git-rebase-comment-re
+                                             " Rebase [^ \n]+ onto")
+                                     nil t)
+                  (line-beginning-position))
+             (point-max))))
       (if (or (and (< n 0) (= beg (point-min)))
               (and (> n 0) (= end (point-max)))
               (> end (point-max)))
@@ -333,13 +384,13 @@ current line."
   "Kill the current action line."
   (interactive)
   (goto-char (line-beginning-position))
-  (when (and (looking-at git-rebase-line)
-             (not (eq (char-after) (string-to-char comment-start))))
-    (let ((inhibit-read-only t))
-      (insert comment-start)
-      (insert " "))
-    (when git-rebase-auto-advance
-      (forward-line))))
+  (let ((ln (git-rebase-current-line)))
+    (when (and ln (not (oref ln comment-p)))
+      (let ((inhibit-read-only t))
+        (insert comment-start)
+        (insert " "))
+      (when git-rebase-auto-advance
+        (forward-line)))))
 
 (defun git-rebase-insert (rev)
   "Read an arbitrary commit and insert it below current line."
@@ -415,14 +466,14 @@ Like `undo' but works in read-only buffers."
 (defun git-rebase--show-commit (&optional scroll)
   (let ((disable-magit-save-buffers t))
     (save-excursion
-      (goto-char (line-beginning-position))
-      (--if-let (and (looking-at git-rebase-line)
-                     (match-string 2))
-          (pcase scroll
-            (`up   (magit-diff-show-or-scroll-up))
-            (`down (magit-diff-show-or-scroll-down))
-            (_     (apply #'magit-show-commit it (magit-diff-arguments))))
-        (ding)))))
+      (pcase (git-rebase-current-line)
+        ((eieio (action-type `commit) target)
+         (pcase scroll
+           (`up   (magit-diff-show-or-scroll-up))
+           (`down (magit-diff-show-or-scroll-down))
+           (_     (apply #'magit-show-commit target (magit-diff-arguments)))))
+        (_
+         (ding))))))
 
 (defun git-rebase-show-commit ()
   "Show the commit on the current line if any."
@@ -468,10 +519,6 @@ running 'man git-rebase' at the command line) for details."
   :group 'git-rebase
   (setq comment-start (or (magit-get "core.commentChar") "#"))
   (setq git-rebase-comment-re (concat "^" (regexp-quote comment-start)))
-  (setq git-rebase-line
-        (concat "^\\(" (regexp-quote comment-start) "? *"
-                "\\(?:[fprse]\\|pick\\|reword\\|edit\\|squash\\|fixup\\|exec\\|noop\\)\\) "
-                "\\(?:\\([^ \n]+\\) \\(.*\\)\\)?"))
   (setq font-lock-defaults (list (git-rebase-mode-font-lock-keywords) t t))
   (unless git-rebase-show-instructions
     (let ((inhibit-read-only t))
