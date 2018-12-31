@@ -408,13 +408,11 @@ current line."
   "Kill the current action line."
   (interactive)
   (goto-char (line-beginning-position))
-  (let ((ln (git-rebase-current-line)))
-    (when (and ln (not (oref ln comment-p)))
-      (let ((inhibit-read-only t))
-        (insert comment-start)
-        (insert " "))
-      (when git-rebase-auto-advance
-        (forward-line)))))
+  (pcase (git-rebase-current-line)
+    ((eieio (comment-p nil))
+     (let ((inhibit-read-only t))
+       (insert comment-start)
+       (insert " ")))))
 
 (defun git-rebase-insert (rev)
   "Read an arbitrary commit and insert it below current line."
