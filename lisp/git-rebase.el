@@ -425,14 +425,18 @@ current line."
     (user-error "Unknown revision")))
 
 (defun git-rebase-set-noncommit-action (action value-fn arg)
-  (let* ((inhibit-read-only t)
-         (ln (git-rebase-current-line))
-         (initial (and (not arg)
-                       ln
-                       (equal (oref ln action) action)
-                       (oref ln target)))
-         (value (funcall value-fn initial)))
-    (pcase (list value initial)
+  (pcase-let* ((inhibit-read-only t)
+               (ln (git-rebase-current-line))
+               (`(,initial ,trailer ,comment-p)
+                (and (not arg) ln
+                     (with-slots ((ln-action action) target trailer comment-p)
+                         ln
+                       (and (equal ln-action action)
+                            (list target trailer comment-p)))))
+               (value (funcall value-fn initial)))
+    (pcase (list value initial (oref ln comment-p))
+      ((and (,_ ,_ t))
+       (ding))
       ((or `("" nil)
            (guard (equal value initial)))
        (ding))
