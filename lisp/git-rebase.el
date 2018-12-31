@@ -567,16 +567,16 @@ Like `undo' but works in read-only buffers."
     (undo arg)))
 
 (defun git-rebase--show-commit (&optional scroll)
-  (let ((disable-magit-save-buffers t)
-        (ln (git-rebase-current-line)))
+  (let ((disable-magit-save-buffers t))
     (save-excursion
-      (if (eq (oref ln action-type) 'commit)
-        (pcase scroll
-          (`up   (magit-diff-show-or-scroll-up))
-          (`down (magit-diff-show-or-scroll-down))
-          (_     (apply #'magit-show-commit
-                        (oref ln target)
-                        (magit-diff-arguments))))
+      (goto-char (line-beginning-position))
+      (--if-let (with-slots (action-type target) (git-rebase-current-line)
+                  (and (eq action-type 'commit)
+                       target))
+          (pcase scroll
+            (`up   (magit-diff-show-or-scroll-up))
+            (`down (magit-diff-show-or-scroll-down))
+            (_     (apply #'magit-show-commit it (magit-diff-arguments))))
         (ding)))))
 
 (defun git-rebase-show-commit ()
