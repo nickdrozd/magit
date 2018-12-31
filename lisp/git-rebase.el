@@ -426,11 +426,11 @@ current line."
 
 (defun git-rebase-set-noncommit-action (action value-fn arg)
   (let* ((inhibit-read-only t)
-         (ln (git-rebase-current-line))
          (initial (and (not arg)
-                       ln
-                       (equal (oref ln action) action)
-                       (oref ln target)))
+                       (pcase (git-rebase-current-line)
+                         ((eieio (action line-action) target)
+                          (and (equal line-action action)
+                               target)))))
          (value (funcall value-fn initial)))
     (pcase (list value initial)
       ((or `("" nil)
