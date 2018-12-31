@@ -319,7 +319,7 @@
 (defun git-rebase-set-action (action)
   (goto-char (line-beginning-position))
   (pcase (git-rebase-current-line)
-    ((eieio (action-type `commit) target trailer)
+    ((eieio (action-type 'commit) target trailer)
      (let ((inhibit-read-only t))
        (magit-delete-line)
        (insert (concat action " " target " " trailer "\n"))
@@ -564,7 +564,7 @@ Like `undo' but works in read-only buffers."
   (let ((disable-magit-save-buffers t))
     (save-excursion
       (pcase (git-rebase-current-line)
-        ((eieio (action-type `commit) target)
+        ((eieio (action-type 'commit) target)
          (pcase scroll
            (`up   (magit-diff-show-or-scroll-up))
            (`down (magit-diff-show-or-scroll-down))
