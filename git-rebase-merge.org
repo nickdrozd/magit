@@ -25,6 +25,8 @@ make sure all commands are present, reduce merge to oneline
 
 ** TODO face for comment bits
 
+** TODO is initial working right for label?
+
 ** TODO release notes
 
 ** TODO update docs
