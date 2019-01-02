@@ -492,8 +492,9 @@ if any."
   (interactive "P")
   (git-rebase-set-noncommit-action
    "reset"
-   (lambda (_)
-     (or (magit-completing-read "Label" (git-rebase-buffer-labels))
+   (lambda (initial)
+     (or (magit-completing-read "Label" (git-rebase-buffer-labels)
+                                nil t initial)
          ""))
    arg))
 
