@@ -498,6 +498,7 @@ if any."
    arg))
 
 (defun git-rebase-merge (arg)
+  "merge doc"
   (interactive "P")
   (git-rebase-set-noncommit-action
    "merge"

@@ -21,6 +21,9 @@ desired behavior
 
 make sure all commands are present, reduce merge to oneline
 
+probably need to adjust for <commit> too: f431d73d9c
+(git-rebase--interactive: clarify arguments, 2018-04-25)
+
 ** TODO command for adding choosing msg commit?
 
 ** TODO decide on key bindings
