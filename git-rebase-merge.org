@@ -13,6 +13,15 @@ seems like can just pick them, but end up wrong
 actually doesn't seem like you can pick them, only the types i've
 introduced
 
+desired behavior
+
+- [X] if on different action and empty, ding
+- [X] if on uncommented and empty, delete
+- [X] if on uncommented with same, ding
+- [X] if on commented and empty, uncomment
+- [X] if on commented and same, uncomment
+- [ ] if on different action, new line
+
 * rebase
 
 ** TODO adjust comment help

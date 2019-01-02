@@ -427,6 +427,7 @@ current line."
     (user-error "Unknown revision")))
 
 (defun git-rebase-set-noncommit-action (action value-fn arg)
+  (goto-char (line-beginning-position))
   (pcase-let* ((inhibit-read-only t)
                (`(,initial ,trailer ,comment-p)
                 (and (not arg)
@@ -437,22 +438,19 @@ current line."
                             (list target trailer comment-p)))))
                (value (funcall value-fn initial)))
     (pcase (list value initial comment-p)
-      (`(""  ,_ nil)
+      (`("" nil ,_)
+       (ding))
+      (`(""  ,_ ,_)
        (magit-delete-line))
-      ((and (,_ ,_ nil)
-            (guard (equal value initial)))
-       (ding))
-      ((and (,_ ,_ nil)
-            (guard (equal value initial)))
-       (ding))
-      ((or `("" nil)
-           (guard (equal value initial)))
-       (ding))
       (_
        (if initial
            (magit-delete-line)
          (forward-line))
-       (insert (concat action " " value "\n"))
+       (insert (concat action " " value
+                       (and (equal value initial)
+                            trailer
+                            (concat " " trailer))
+                       "\n"))
        (unless git-rebase-auto-advance
          (forward-line -1))))))
 
