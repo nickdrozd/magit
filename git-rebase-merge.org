@@ -6,7 +6,8 @@
 but only for action.  and maybe that makes sense given comment heading
 below.
 
-** TODO way to uncomment lines like exec and reset?
+** DONE way to uncomment lines like exec and reset?
+CLOSED: [2019-01-01 Tue 23:04]
 
 seems like can just pick them, but end up wrong
 
@@ -28,7 +29,8 @@ probably need to adjust for <commit> too: f431d73d9c
 
 ** TODO decide on key bindings
 
-** TODO face for comment bits
+** DONE face for comment bits
+CLOSED: [2019-01-01 Tue 23:04]
 
 ** TODO is initial working right for label?
 
@@ -38,7 +40,8 @@ probably need to adjust for <commit> too: f431d73d9c
 
 commentary.  anything in manual?
 
-** TODO variables for other repeated regexps?
+** DONE variables for other repeated regexps?
+CLOSED: [2019-01-01 Tue 23:04]
 
 * other
 
@@ -46,4 +49,5 @@ commentary.  anything in manual?
 
 in git 2.20.  mention git version in docstring?
 
-** TODO use with-slots ?
+** DONE use with-slots ?
+CLOSED: [2019-01-01 Tue 23:04]
